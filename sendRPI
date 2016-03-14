@@ -1,0 +1,46 @@
+#!/usr/bin/env bash -x
+
+RPIHOSTNAME=pi@raspberrypi.local
+RPIDIRECTORY=/home/pi/Downloads/$(whoami)/
+
+if [ $# -eq 0 ]
+then
+    echo "sendRPI: ERROR! No arguments"
+    echo "type sendRPI -h for help"
+    exit 1
+fi
+
+if [ $# -gt 1 ]
+then
+    echo "too many arguments"
+    exit 1
+fi
+
+ssh $RPIHOSTNAME test -d $RPIDIRECTORY
+
+if [ $? != 0 ]
+then
+    ssh $RPIHOSTNAME mkdir -p  $RPIDIRECTORY
+fi
+
+FILE=$1
+
+if [ -f $FILE ] && [ -r $FILE ]
+then
+    echo "Copying $FILE to $RPIHOSTNAME in $RPIDIRECTORY"
+    rsync $FILE $RPIHOSTNAME:$RPIDIRECTORY
+    exit $?
+fi
+
+if [ -d $FILE ] && [ -r $FILE ]
+then
+    echo "Copying $FILE to $RPIHOSTNAME in $RPIDIRECTORY"
+    rsync -r $FILE $RPIHOSTNAME:$RPIDIRECTORY
+    exit $?
+fi
+
+if [ "$1" = "-h" ]
+then
+    echo "help"
+    exit 0
+fi
